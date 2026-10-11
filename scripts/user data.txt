@@ -1,0 +1,32 @@
+#!/bin/bash
+dnf update -y
+dnf install -y python3-pip
+pip3 install flask pymysql redis gunicorn cryptography
+
+mkdir -p /opt/shop
+cat > /opt/shop/app.py << 'EOF'
+PASTE THE FULL app.py FROM STEP 7 HERE
+EOF
+
+cat > /etc/systemd/system/shop.service << 'EOF'
+[Unit]
+Description=Shop App
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/shop
+Environment="DB_HOST=REPLACE_RDS_ENDPOINT"
+Environment="DB_USER=admin"
+Environment="DB_PASS=REPLACE_DB_PASSWORD"
+Environment="DB_NAME=shop"
+Environment="REDIS_HOST=REPLACE_REDIS_ENDPOINT"
+Environment="S3_URL=https://REPLACE_BUCKET_NAME.s3.ap-south-1.amazonaws.com"
+ExecStart=/usr/local/bin/gunicorn -w 2 -b 0.0.0.0:80 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now shop
